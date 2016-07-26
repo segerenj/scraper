@@ -303,13 +303,22 @@ bit155.scraper.scrape = function(options) {
       var xpathResult = null;
       
       $.each(attributes, function() {
+        var stringToPush = document.evaluate(this.xpath, e, null, XPathResult.STRING_TYPE, null).stringValue;
+        // Sketchy hack to split out into sentences, and inject
+        var result = stringToPush.match( /[^\.!\?]+[\.!\?]+/g );
         values.push(document.evaluate(this.xpath, e, null, XPathResult.STRING_TYPE, null).stringValue);
       });
     }
-    
-    result.push({
-      'xpath': el.xpath(),
-      'values': values
+
+    console.log(values);
+    var sentenceSplitRows = [];
+    // Assume only first column should be split,
+    var valueSentenceSplit = values[0].replace(/([.?!])\s*(?=[A-Z])/g, "$1|").split("|");
+    $.each(valueSentenceSplit, function(index, value) {
+      result.push({
+        'xpath': el.xpath(),
+        'values': [value].concat(values.slice(1, values.length))
+      });
     });
   });
   
